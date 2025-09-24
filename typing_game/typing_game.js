@@ -74,7 +74,7 @@ this.onload = async ()=>{
     const createLanguageButtons = (langs)=>{
         // @TODO
         let first = true;
-        for(let i=0; i < langs.length; i++){
+        for(let i = 0; i < langs.length; i++){
             const lang = langs[i];
             console.log(lang);
             // Create the label.<label for="de">Deutsch</label>
@@ -83,7 +83,7 @@ this.onload = async ()=>{
             label.textContent = lang;
             // Create the input.<input type="radio" value="de" id="de" name="lang" checked/><br/>
             const input = document.createElement('input');
-            input.setAttribute('type','radio'); // The type of input.
+            input.type = 'radio'; // input.setAttribute('type','radio'); // The type of input.
             input.setAttribute('value',lang); // What will be set as value
             input.setAttribute('id',lang);
             input.setAttribute('name',"lang"); // Same as same radio buttons

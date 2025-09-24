@@ -42,7 +42,7 @@ const max2 = 3; // 2nd circle around center.
     const x = Number(rowStr.slice(2));
     const y = Number(colStr);
     for (let k = 0; k < rows; k++) { // Loop the rows.
-    for (let l = 0; l < cols; l++) { // loop the columns.
+      for (let l = 0; l < cols; l++) { // loop the columns.
       const item = document.querySelector(`#id${k}-${l}`); // Select the cell.
       if (!item) {
         // Skipp if error
@@ -60,6 +60,9 @@ const max2 = 3; // 2nd circle around center.
       }
     }
   }
+}
+  // Utility: Get a random item from an array.
+const randomFromArray = arr => arr[Math.floor(Math.random() * arr.length)];
   // Animation logic
 const animateItem = (item, char, delay, extraClass) => {
   // Launch a function with delay to make the start status of the cell.

@@ -7,19 +7,20 @@ The time spent to type is displayed to the user.
 
 ### Basics
 
-1. Generate a random word
-  Calling a random word API online
-2. Capture keyboard's types
-3. Compare typed with generated
-4. Add a start function 
-  1. initvariables
-  1. Initialize and Start timer
-  2. get randon word
-5. Add a timer display
-6. Add the spans around correct or wrong characters
 
-### Optional
+We will build this game step by step together.
+You will make some changes to make it your own.
 
-7. Store records
-8. Display records
+@todo :
+
+- Load current api languages.
+- Add levels and auto increase word count and length.
+- Add penalty when user skips word.
+- Add username associated with the records.
+- Improve display.
+
+### Optional (when server side js lernt)
+
+- Store records (locally in file or db)
+- Display records
   

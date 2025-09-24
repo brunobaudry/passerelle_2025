@@ -5,16 +5,16 @@ window.onload = () => {
   let cols = 0;
   let currentHue = Math.floor(Math.random() * 360); // Start with a random hue.
   // Constants
-const timeout = 200; //EDIT
-const timeout2 = 300; //EDIT
-const timeout3 = 400; //EDIT
-  const primary = "&nbsp;"; // Initial char.
-// First 
-const center = ['@', '®', '©',]; //EDIT
-const tertiary = ['.', '*', '•', '°']; //EDIT
-const secondary = ['\\', '/', '|', '-', '_','&boxv;','&boxh;','&boxvl;','&boxvl;','&boxhd;','&boxhu;']; //EDIT
-const max = 2; // First circle around center.
-const max2 = 5; // 2nd circle around center.
+  const timeout = 200; //EDIT
+  const timeout2 = 300; //EDIT
+  const timeout3 = 400; //EDIT
+    const primary = "&nbsp;"; // Initial char.
+  // First 
+  const center = ['@', '®', '©',]; //EDIT
+  const tertiary = ['.', '*', '•', '°']; //EDIT
+  const secondary = ['\\', '/', '|', '-', '_','&boxv;','&boxh;','&boxvl;','&boxvl;','&boxhd;','&boxhu;']; //EDIT
+  const max = 2; // First circle around center.
+  const max2 = 5; // 2nd circle around center.
 
   const calculateGridSize = () => {
       // Create a test SPAN.

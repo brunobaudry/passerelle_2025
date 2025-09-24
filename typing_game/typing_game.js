@@ -46,7 +46,7 @@ this.onload = async ()=>{
         /*************************************************************
          * HERE WE NEED TO CREATE THE RADIO BUTTONS AND ADD TO THE PAGE.
          **********************************************************/
-        createLanguageButtons(langs);
+        createLanguageButtons(langs); // Add the radios to the page
         typeWordP.addEventListener('input',onInput);
         startBtn.addEventListener('click',startGame); // listen to click on start button
         document.addEventListener('keydown', (event) => {
@@ -67,7 +67,7 @@ this.onload = async ()=>{
         });
     });
     /**
-     * 
+     * Add the radios to the page.
      * @param {array} langs 
      */
     const createLanguageButtons = (langs)=>{

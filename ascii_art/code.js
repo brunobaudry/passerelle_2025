@@ -38,6 +38,7 @@ window.onload = () => {
       }
       // Compute Euclidian distance from K,l to x,y
       const distance = Math.sqrt((k - x) ** 2 + (l - y) ** 2);
+      console.log(distance);
     }
   }
   const buildBrid = ()=>{

@@ -4,6 +4,10 @@
  * 
  * @todo :
  * - Load current api languages.
+ *      1. Fetch the language list from the API <<<<<<
+ *      2. Loop through it
+ *      3. Create input buttons in the loop
+ *      3. add the inputs in div id="languages" ()
  * - Add levels and auto increase word count and length.
  * - Add penalty when user skips word.
  * - Add username associated with the records.
@@ -34,24 +38,42 @@ this.onload = async ()=>{
     const lengthInput = document.querySelector("#len");//==> EXPLAIN THIS LINE OF CODE
     const typeWordP = document.querySelector('#typedword');// get the html element for user typed
     // Add an event listener to listen to keyboard type.
-    typeWordP.addEventListener('input',onInput);
-    startBtn.addEventListener('click',startGame); // listen to click on start button
-    document.addEventListener('keydown', (event) => {
-        const keyTyped = event.key;
-        if (keyTyped === "Dead") {
-            // Trick for ô style double strokes.
-            lastWasDead = true;
-        } else {
-            lastWasDead = false;
-            if(keyTyped === "Enter"){
-                startGame();
-            } else if (timerRecorded > 0 && (event.key === 'Backspace' || event.key === 'Delete')) {
-                // Delete or backspace.
-                console.log('keydown');
-                onInput(null);
+    let langs = [];
+    getLanguages().then((data)=>{
+        // Only when we got the languages can we start the Game.
+        langs = data;
+        console.log(langs);
+        /*************************************************************
+         * HERE WE NEED TO CREATE THE RADIO BUTTONS AND ADD TO THE PAGE.
+         **********************************************************/
+        createLanguageButtons(langs);
+        typeWordP.addEventListener('input',onInput);
+        startBtn.addEventListener('click',startGame); // listen to click on start button
+        document.addEventListener('keydown', (event) => {
+            const keyTyped = event.key;
+            if (keyTyped === "Dead") {
+                // Trick for ô style double strokes.
+                lastWasDead = true;
+            } else {
+                lastWasDead = false;
+                if(keyTyped === "Enter"){
+                    startGame();
+                } else if (timerRecorded > 0 && (event.key === 'Backspace' || event.key === 'Delete')) {
+                    // Delete or backspace.
+                    console.log('keydown');
+                    onInput(null);
+                }
             }
-        }
+        });
     });
+    /**
+     * 
+     * @param {array} langs 
+     */
+    const createLanguageButtons = (langs)=>{
+        // @TODO
+    }
+    
     async function startGame(){
         clearInterval(intervalID); // Reset the interval loop
         // Get language
@@ -149,11 +171,25 @@ this.onload = async ()=>{
         // String interpolated url with parameters as variables
         console.log(lng);
         const url = `${apiUrl}/word?length=${lngth}&number=${nmber}&lang=${lng}`;
+        // const url = `${apiUrl}/languages`;
         // Call http.
         const response = await fetch(url);
         // Get the rsponse data.
         const data = await response.json();
         // Return the data to the function call.
         return data.join(" ");
+    }
+    /**
+     * 
+     * @returns 
+     */
+    async function getLanguages() {
+        const url = `${apiUrl}/languages`;
+        const response = await fetch(url);
+        // get the response data
+        const data = await response.json();
+        // console.log(data);
+        // return the data to the function call
+        return data;
     }
 }

@@ -73,29 +73,28 @@ this.onload = async ()=>{
      */
     const createLanguageButtons = (langs)=>{
         // @TODO
-        let first = true;
+        addRadioElements('en', true);
         for(let i = 0; i < langs.length; i++){
-            const lang = langs[i];
-            console.log(lang);
-            // Create the label.<label for="de">Deutsch</label>
-            const label = document.createElement('label');
-            label.setAttribute('for',lang);
-            label.textContent = lang;
-            // Create the input.<input type="radio" value="de" id="de" name="lang" checked/><br/>
-            const input = document.createElement('input');
-            input.type = 'radio'; // input.setAttribute('type','radio'); // The type of input.
-            input.setAttribute('value',lang); // What will be set as value
-            input.setAttribute('id',lang);
-            input.setAttribute('name',"lang"); // Same as same radio buttons
-            if(first){ // Only check the first item
-                input.checked = true;
-                first = false;
-            }
-            // Add the items to the radio container
-            languagesContainer.appendChild(label);
-            languagesContainer.appendChild(input);
-            languagesContainer.appendChild(document.createElement('br'));
+            addRadioElements(langs[i], false);
         }
+    }
+    const addRadioElements = (lang, first)=>{
+        const label = document.createElement('label');
+        label.setAttribute('for',lang);
+        label.textContent = lang;
+        // Create the input.<input type="radio" value="de" id="de" name="lang" checked/><br/>
+        const input = document.createElement('input');
+        input.type = 'radio'; // input.setAttribute('type','radio'); // The type of input.
+        input.setAttribute('value',lang); // What will be set as value
+        input.setAttribute('id',lang);
+        input.setAttribute('name',"lang"); // Same as same radio buttons
+        if(first){ // Only check the first item
+                input.checked = true;
+        }
+        // Add the items to the radio container
+        languagesContainer.appendChild(label);
+        languagesContainer.appendChild(input);
+        languagesContainer.appendChild(document.createElement('br'));
     }
     
     async function startGame(){

@@ -20,6 +20,10 @@ window.onload = () => {
     cols = Math.floor(window.innerWidth / cellWidth) + 4;
     rows = Math.floor(window.innerHeight / cellHeight) + 1;
   };
+  const ballChanger=(e)=>{
+    console.log(e);
+    console.log(e.target);
+  }
   const buildBrid = ()=>{
     // Build the grid.
     for (let i = 0; i < rows; i++) {

@@ -35,6 +35,7 @@ this.onload = async ()=>{
     const startBtn = document.querySelector('#startgame');// start button
     const allRecordsOL = document.querySelector('#allRecords'); // list of records
     const nbWordInput = document.querySelector("#nb");
+    const languagesContainer = document.querySelector("#languages");
     const lengthInput = document.querySelector("#len");//==> EXPLAIN THIS LINE OF CODE
     const typeWordP = document.querySelector('#typedword');// get the html element for user typed
     // Add an event listener to listen to keyboard type.
@@ -72,6 +73,29 @@ this.onload = async ()=>{
      */
     const createLanguageButtons = (langs)=>{
         // @TODO
+        let first = true;
+        for(let i=0; i < langs.length; i++){
+            const lang = langs[i];
+            console.log(lang);
+            // Create the label.<label for="de">Deutsch</label>
+            const label = document.createElement('label');
+            label.setAttribute('for',lang);
+            label.textContent = lang;
+            // Create the input.<input type="radio" value="de" id="de" name="lang" checked/><br/>
+            const input = document.createElement('input');
+            input.setAttribute('type','radio'); // The type of input.
+            input.setAttribute('value',lang); // What will be set as value
+            input.setAttribute('id',lang);
+            input.setAttribute('name',"lang"); // Same as same radio buttons
+            if(first){ // Only check the first item
+                input.checked = true;
+                first = false;
+            }
+            // Add the items to the radio container
+            languagesContainer.appendChild(label);
+            languagesContainer.appendChild(input);
+            languagesContainer.appendChild(document.createElement('br'));
+        }
     }
     
     async function startGame(){

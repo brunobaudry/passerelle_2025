@@ -3,6 +3,8 @@
 The typing game will display a word to the user and the user will have to try to type it as fast as he can.
 The time spent to type is displayed to the user.
 
+https://random-word-api.herokuapp.com
+
 ## Steps
 
 ### Basics
@@ -23,4 +25,3 @@ You will make some changes to make it your own.
 
 - Store records (locally in file or db)
 - Display records
-  

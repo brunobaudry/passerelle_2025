@@ -21,8 +21,24 @@ window.onload = () => {
     rows = Math.floor(window.innerHeight / cellHeight) + 1;
   };
   const ballChanger=(e)=>{
-    console.log(e);
+    // console.log(e);
     console.log(e.target);
+    // GRAB the span id and divide it by -
+    // idXX YY
+    const [rowStr, colStr] = e.target.id.split('-');
+    // remove 'id'
+    const x = Number(rowStr.slice(2));
+    const y = Number(colStr);
+    for (let k = 0; k < rows; k++) { // Loop the rows.
+    for (let l = 0; l < cols; l++) { // loop the columns.
+      const item = document.querySelector(`#id${k}-${l}`); // Select the cell.
+      if (!item) {
+        // Skipp if error
+        continue;
+      }
+      // Compute Euclidian distance from K,l to x,y
+      const distance = Math.sqrt((k - x) ** 2 + (l - y) ** 2);
+    }
   }
   const buildBrid = ()=>{
     // Build the grid.
@@ -41,5 +57,5 @@ window.onload = () => {
   }
   calculateGridSize();
   buildBrid();
-  console.log(cols, rows);
+  // console.log(cols, rows);
 }

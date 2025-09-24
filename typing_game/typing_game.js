@@ -73,6 +73,14 @@ this.onload = async ()=>{
     }
     /**
      * ==> EXPLAIN what the function startGame() does
+     * @return void
+     */
+    function updateTimer(){
+        timerRecorded = (startTime++/100).toFixed(2); // start time with 2 digit format 1.000001 = 1.00
+        timerP.textContent = "time: " +  timerRecorded +" s";
+    }
+    /**
+     * ==> EXPLAIN what the function startGame() does
      * @param event
      */
     function onInput(event){

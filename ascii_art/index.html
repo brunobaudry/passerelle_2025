@@ -4,33 +4,31 @@
         <script src="code.js"></script>
         <style>
             body {
-            margin: 0;
-            padding: 0;
-            background-image: url('https://picsum.photos/1920/1080');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            height: 100vh;
+                margin: 0;
+                padding: 0;
+                background-image: url('https://picsum.photos/1920/1080');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                height: 100vh;
             }
-
-            .selected{
+            /* .selected{
                 background-color: red;
                 color: white;
-            }
+            } */
             p{
                 cursor:crosshair;
             }
             *{
                 font-family: 'Courier New', Courier, monospace;
-               
                 cursor:none;
             }
-             span{
+            span{
                 box-sizing: border-box;
                 padding:0;
                 margin:0;
-               transition: background-color .3s ease;
-               cursor:crosshair;
+                transition: background-color .3s ease;
+                cursor:grabbing;
             }
             span.shadow{
                 font-weight:900;

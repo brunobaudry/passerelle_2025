@@ -72,7 +72,6 @@ this.onload = async ()=>{
      * @param {array} langs 
      */
     const createLanguageButtons = (langs)=>{
-        // @TODO
         addRadioElements('en', true);
         for(let i = 0; i < langs.length; i++){
             addRadioElements(langs[i], false);
@@ -88,9 +87,7 @@ this.onload = async ()=>{
         input.setAttribute('value',lang); // What will be set as value
         input.setAttribute('id',lang);
         input.setAttribute('name',"lang"); // Same as same radio buttons
-        if(first){ // Only check the first item
-                input.checked = true;
-        }
+        input.checked = first;
         // Add the items to the radio container
         languagesContainer.appendChild(label);
         languagesContainer.appendChild(input);

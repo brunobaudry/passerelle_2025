@@ -33,10 +33,11 @@ this.onload = async ()=>{
     * CONSTANTS
    ********************************************/
   const apiUrl = "https://random-word-api.herokuapp.com";
-  const usersArray = [currentUser];
+  const usersArray = [];
   const penaltyMap = new Map();
   const pointsMap = new Map();
   const levelMap = new Map();
+  const stageMap = new Map();
   const correctionPenalty = 1;
   const chickenPenalty = 2;
   const successPoint = 5;
@@ -67,29 +68,57 @@ this.onload = async ()=>{
         langs = data;
         // console.log(langs);
        createLanguageButtons(langs); // Add the radios to the page
-       addUser.addEventListener('click', (e)=>{
-        // console.log();
-            const u = userinput.value;
-            if(usersArray.indexOf(u) == -1){
-                if(usersArray.indexOf(DEFAULTNAME) == 0){
-                    usersArray.length=0;
-                }
-                usersArray.push(userinput.value);
-                const o = document.createElement('option');
-                o.value = u;
-                o.textContent = u;
-                users.appendChild(o);
-                users.selectedIndex = users.children.length-1;
-            }else{
-                alert(`${u} already exists, find another name !`);
-            }
-            
-       })
+       currentUser = DEFAULTNAME;
+       console.log(currentUser, usersArray);
+       initUser(currentUser);
+       addUser.addEventListener('click', e =>{
+        console.log('click', currentUser);
+        initUser(userinput.value);
+
+    });
+       users.addEventListener('change',(e)=>{
+        
+        currentUser = users.value;
+
+        const stage = stageMap.get(currentUser);
+        nbWordInput.value = stage.contWords;
+        lengthInput.value = stage.wordLength;
+       
+    });
+       nbWordInput.addEventListener('click',onNumstepperChange);
+       lengthInput.addEventListener('click',onNumstepperChange);
        typeWordP.addEventListener('input',onInput);
        startBtn.addEventListener('click',startGame); // listen to click on start button
        // Add an event listener to listen to keyboard type.
         document.addEventListener('keydown', onKey);
     }
+    const onNumstepperChange = (e)=>{
+            const stage = stageMap.get(currentUser);
+            stageMap.set(currentUser, {
+               contWords: parseInt(nbWordInput.value), 
+                wordLength: parseInt(lengthInput.value)}
+            );
+        }
+    const initUser = (u)=>{
+        console.log('initUser', u);
+        if (usersArray.indexOf(u) == -1) {
+            if (usersArray.indexOf(DEFAULTNAME) == 0) {
+                usersArray.length = 0;
+            }
+            usersArray.push(u);
+            const o = document.createElement('option');
+            o.value = u;
+            o.textContent = u;
+            if(u == DEFAULTNAME){
+                o.disabled= true;
+            }
+            users.appendChild(o);
+            users.selectedIndex = users.children.length - 1;
+            initMaps(u);
+        } else {
+            alert(`${u} already exists, find another name !`);
+        }
+    };
     /**
      * 
      * @param {Event} event 
@@ -146,6 +175,9 @@ this.onload = async ()=>{
     }
     const initUI=()=>{
         console.log('initUI');
+        const stage = stageMap.get(currentUser);
+        nbWordInput.value = stage.contWords;
+        lengthInput.value = stage.wordLength;
         timerP.classList = [];
         typeWordP.focus();
     }
@@ -154,7 +186,6 @@ this.onload = async ()=>{
      */
     async function startGame(){
         clearInterval(intervalID); // Reset the interval loop
-       
         initUI();
         // Get language
         await initWords();
@@ -162,8 +193,8 @@ this.onload = async ()=>{
         if(!success && (startTime != initialStartTime)){
             penaltyMap.set(currentUser, penaltyMap.get(currentUser) + chickenPenalty);
         }
-        currentUser = users.value==''?DEFAULTNAME:users.value;
-        initMaps();
+        
+        initMaps(currentUser);
         // Set the initial time based on the user level.
         initialStartTime = randomWords.length * charLevelMap.get(levelMap.get(currentUser)) + 20;
         timerRecorded = 0; // Init times.
@@ -177,15 +208,18 @@ this.onload = async ()=>{
     /**
      * 
      */
-    const initMaps=()=> {
-        if (!penaltyMap.has(currentUser)) {
-            penaltyMap.set(currentUser, 0);
+    const initMaps=(user)=> {
+        if (!penaltyMap.has(user)) {
+            penaltyMap.set(user, 0);
         }
-        if (!pointsMap.has(currentUser)) {
-            pointsMap.set(currentUser, 0);
+        if (!pointsMap.has(user)) {
+            pointsMap.set(user, 0);
         }
-        if (!levelMap.has(currentUser)) {
-            levelMap.set(currentUser, 0);
+        if (!levelMap.has(user)) {
+            levelMap.set(user, 0);
+        }
+        if (!stageMap.has(user)) {
+            stageMap.set(user, {contWords:1, wordLength:2});
         }
     }
 
@@ -295,6 +329,10 @@ this.onload = async ()=>{
             updateRecordsBoard(typed);
         }
     }
+    /**
+     * 
+     * @param {*} typed 
+     */
     const updateRecordsBoard = (typed)=>{
         allRecords.push( {time: timerRecorded, word:typed, user:currentUser });
         allRecords.sort((a, b) => a.time - b.time);
@@ -308,6 +346,9 @@ this.onload = async ()=>{
             allRecordsOL.appendChild(li);
         });
     };
+    /**
+     * 
+     */
     const updateLeaderBoard = ()=>{
         leaderboard.innerHTML = ""; // Reset list
         for ( let i in usersArray ){
@@ -320,18 +361,28 @@ this.onload = async ()=>{
             leaderboard.appendChild(li);
         }
     }
+    /**
+     * 
+     * @param {*} user 
+     */
     const upgradeUser = (user)=>{
         let userLevel = levelMap.get(user);
         if(pointsMap.get(user) - 10*(userLevel+1) > 0){
-            nbWordInput.value = parseInt(nbWordInput.value) + 1;
+            
+            stageMap.set(currentUser, {contWords:++stage.contWords, wordLength: stage.wordLength});
             levelMap.set(user, ++userLevel);
         }
     }
+    /**
+     * 
+     * @param {*} success 
+     */
     const stopGame = (success) =>{
         gameStarted = false;
         if(success){
             timerP.classList.add('correct');
-             lengthInput.value = parseInt(lengthInput.value) + 1;
+            const stage = stageMap.get(currentUser);
+            stageMap.set(currentUser, {contWords:stage.contWords, wordLength:++stage.wordLength});
             pointsMap.set(currentUser, pointsMap.get(currentUser) + successPoint);
         }else{
             timerP.classList.add('wrong');

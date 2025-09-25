@@ -3,13 +3,13 @@
  * You will make some changes to make it your own.
  * 
  * @todo :
- * - Load current api languages.
+ * - Load current api languages.                        -done 
  *      1. Fetch the language list from the API <<<<<<
  *      2. Loop through it
  *      3. Create input buttons in the loop
  *      3. add the inputs in div id="languages" ()
- * - Add levels and auto increase word count and length.
- * - Add penalty when user skips word.
+ * - Add levels and auto increase word count and length. - done
+ * - Add penalty when user skips word.                   - done
  * - Add username associated with the records.
  * - Improve display.
  */
@@ -87,7 +87,7 @@ this.onload = async ()=>{
             }
         });
          /********************************************
-      *TALISSA BUTTON SKIP WORD - PENALIZE SYSTEM
+      *TALISSA BUTTON SKIP WORD - PENALIZE SYSTEM 
       ********************************************/
           skipBtn.addEventListener('click', ()=>{
             penalize();

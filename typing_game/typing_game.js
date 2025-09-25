@@ -156,7 +156,7 @@ this.onload = async ()=>{
      * ==> EXPLAIN what the function startGame() does
      * @return void
      */
-    function updateTimer(){
+    const updateTimer = ()=>{
         timerRecorded = (startTime++/100).toFixed(2); // start time with 2 digit format 1.000001 = 1.00
         timerP.textContent = "time: " +  timerRecorded +" s";
     }
@@ -164,7 +164,7 @@ this.onload = async ()=>{
      * ==> EXPLAIN what the function startGame() does
      * @param {Event} event
      */
-    function onInput(event){
+    const onInput = (event)=>{
         let typedString = typeWordP.textContent;
         if(event==null){
             typedString = typedString.slice(-1);
@@ -179,7 +179,7 @@ this.onload = async ()=>{
      * @param text
      * @returns {String}
      */
-    function wordHighlighter(text){
+    const wordHighlighter = (text)=>{
         let displayText = '';
         let end = randomWords.substring(text.length);
         // console.log(text, end);
@@ -201,7 +201,7 @@ this.onload = async ()=>{
      * ==> EXPLAIN
      * @param {String} typed
      */
-    function checkWord(typed){
+    const checkWord = (typed)=>{
         //==> EXPLAIN THIS if BLOCK OF CODE (these 4 lines below)
         if(typed === randomWords){
             clearInterval(intervalID);

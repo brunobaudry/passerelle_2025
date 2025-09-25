@@ -77,12 +77,14 @@ this.onload = async ()=>{
 
     });
        users.addEventListener('change',(e)=>{
-        
+        stopGame(false);
         currentUser = users.value;
 
         const stage = stageMap.get(currentUser);
         nbWordInput.value = stage.contWords;
         lengthInput.value = stage.wordLength;
+        
+        console.log(stageMap);
        
     });
        nbWordInput.addEventListener('click',onNumstepperChange);

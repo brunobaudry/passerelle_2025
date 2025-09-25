@@ -47,6 +47,10 @@ this.onload = async ()=>{
       ********************************************/
     const levelP = document.querySelector("#level"); // HTML ELEMENT TO SHOW THE LEVEL ON THE SCREEN. It was added in the HTML <p id="level"></p>
     levelP.textContent = "Level: " + level; // show the actual level the person is
+/********************************************
+      *TALISSA SKIP CONSTANT
+      ********************************************/
+    const skipBtn = document.querySelector('#skipword'); // skip button
     // Add an event listener to listen to keyboard type.
     let langs = [];
     getLanguages().then((data)=>{
@@ -68,12 +72,26 @@ this.onload = async ()=>{
                 lastWasDead = false;
                 if(keyTyped === "Enter"){
                     startGame();
-                } else if (timerRecorded > 0 && (event.key === 'Backspace' || event.key === 'Delete')) {
+                } 
+                // SKIP WORD TALISSA 
+                else if (keyTyped === "Escape") { 
+                    penalize();        // APPLY PENALTY
+                    startGame();       // STARTS THE NEW WORD
+                }
+                // 
+                else if (timerRecorded > 0 && (event.key === 'Backspace' || event.key === 'Delete')) {
                     // Delete or backspace.
                     console.log('keydown');
                     onInput(null);
                 }
             }
+        });
+         /********************************************
+      *TALISSA BUTTON SKIP WORD - PENALIZE SYSTEM
+      ********************************************/
+          skipBtn.addEventListener('click', ()=>{
+            penalize();
+            startGame();
         });
     });
     /**
@@ -139,6 +157,17 @@ this.onload = async ()=>{
         lengthInput.value = parseInt(lengthInput.value) + 1; // 1+ word length
         levelP.textContent = "Level: " + level; // show the increased level on the screen
     }
+    // ==============================
+    //PENALIZE SYSTEM ON THE GAME - TALISSA - function back 1 level 
+    // ==============================
+    function penalize() {
+    if(level > 1) { // avoid going under level 1
+        level--;
+        nbWordInput.value = parseInt(nbWordInput.value) - 1;
+        lengthInput.value = parseInt(lengthInput.value) - 1;
+        levelP.textContent = "Level: " + level;
+    }
+}
     /**
      * ==> EXPLAIN what the function startGame() does
      * @param event

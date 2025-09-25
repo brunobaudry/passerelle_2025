@@ -9,6 +9,7 @@
         <div class="container">
             <div class="settings item">
                 <h2>Settings</h2>
+                <input id="userinput" placeholder="Username"/><button id="addUser">add</button><br>
                 <label for="nb">Number of words</label>
                 <input type="number" id="nb" width="40" max="10" min="1" value="1"/><br/>
                 <label for="len">Length of words</label>
@@ -16,20 +17,20 @@
                 <div id="languages"></div>
             </div>
             <div class="item">
-
-                <input id="userinput" placeholder="Username"/><button id="addUser">add</button><br>
+                <label for="users">User:</label>                
                 <select id="users" name="selectusers">
-                    <option id="defaut" value='' disabled>Select user...</option>
+                    <option id="defaut" value='Anonymous' selected="selected" disabled>Anonymous</option>
                 </select>
-                <p id="timer">time: 0.00s</p>
+                <p id="timer" class="">time:</p>
                 <button id="startgame">Start</button><br/>
                 <p contenteditable="true" type="textarea" id="typedword">&nbsp;</p>
                 <p id="randomword">&nbsp;</p>
             </div>
-            <div  class="item">&nbsp;
+            <div class="item">&nbsp;
                 <h2>Records</h2>
                     <ol id="allRecords"></ol>
-            
+                <h2>Leaders</h2>
+                    <ol id="leaderboard"></ol>
             </div>
         </div>
 

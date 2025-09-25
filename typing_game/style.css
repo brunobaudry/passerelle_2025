@@ -30,7 +30,7 @@ h1 {
 #timer {
     font-family: 'Press Start 2P', cursive;
     font-size: 1.5em;
-    color: #ff0000;
+    /* color: #ff0000; */
 }
 
 .blink {

@@ -12,24 +12,33 @@
  * - Add penalty when user skips word.
  * - Add username associated with the records.
  * - Improve display.
- */
+*/
 this.onload = async ()=>{
     /*********************************************
      * VARIABLES
-     ********************************************/
-    let randomWords=''; // The words sentence the user needs to type.
-    let startTime=0; // Time the user takes to type the word (updated every millisecond).
-    let timerRecorded=0; // timer record (updated every cents of second).
-    let intervalID=0;// an ID for the Timer so that we can stop it.
-    let allRecords = []; // Array of timer recorded.
-    let lastWasDead = false; // Trick for ô style double strokes
-    let currentUser = '';
+    ********************************************/
+   const DEFAULTNAME = 'Anonymous';
+   let randomWords=''; // The words sentence the user needs to type.
+   let startTime=0; // Time the user takes to type the word (updated every millisecond).
+   let initialStartTime = 500;
+   let timerRecorded=0; // timer record (updated every cents of second).
+   let intervalID=0;// an ID for the Timer so that we can stop it.
+   let allRecords = []; // Array of timer recorded.
+   let lastWasDead = false; // Trick for ô style double strokes
+   let currentUser = DEFAULTNAME;
+   let success = false;
+   
+   /*********************************************
+    * CONSTANTS
+   ********************************************/
+  const apiUrl = "https://random-word-api.herokuapp.com";
+  const usersArray = [currentUser];
+  const penaltyArray = [];
+  const pointsMap = new Map();
+  const correctionPenalty = .1;
+  const chickenPenalty = 1;
+  const successPoint = 1;
 
-    /*********************************************
-     * CONSTANTS
-     ********************************************/
-    const apiUrl = "https://random-word-api.herokuapp.com";
-    const usersArray = [];
     /**
      * get the HTML elements
      */
@@ -37,6 +46,7 @@ this.onload = async ()=>{
     const timerP = document.querySelector("#timer");// get the timer P element
     const startBtn = document.querySelector('#startgame');// start button
     const allRecordsOL = document.querySelector('#allRecords'); // list of records
+    const leaderboard = document.querySelector('#leaderboard'); // list of records
     const nbWordInput = document.querySelector("#nb");
     const languagesContainer = document.querySelector("#languages");
     const lengthInput = document.querySelector("#len");//==> EXPLAIN THIS LINE OF CODE
@@ -54,6 +64,9 @@ this.onload = async ()=>{
         console.log();
             const u = userinput.value;
             if(usersArray.indexOf(u) == -1){
+                if(usersArray.indexOf(DEFAULTNAME) == 0){
+                    usersArray = [];
+                }
                 usersArray.push(userinput.value);
                 const o = document.createElement('option');
                 o.value = u;
@@ -86,6 +99,7 @@ this.onload = async ()=>{
             } else if (timerRecorded > 0 && (event.key === 'Backspace' || event.key === 'Delete')) {
                 // Delete or backspace.
                 console.log('keydown');
+                penaltyArray.push({user:currentUser, penalty: correctionPenalty });
                 onInput(null);
             }
         }
@@ -126,16 +140,29 @@ this.onload = async ()=>{
      */
     async function startGame(){
         clearInterval(intervalID); // Reset the interval loop
+        timerP.classList.remove("blink");
+        timerP.classList.remove("correct");
+        timerP.classList.remove("wrong");
+        randomWordP.classList.remove("blink");
         // Get language
         const langInput = document.querySelector("[name='lang']:checked");
         // Fetch the random from the API.
-        randomWords = await getRandomWord(lengthInput.value, nbWordInput.value, langInput.value);
+        const wordsArray = await getRandomWord(lengthInput.value, nbWordInput.value, langInput.value);
+        randomWords = wordsArray.join(" ")
         randomWordP.textContent = randomWords; // put the random word in the P element
         // Resetting 
         typeWordP.innerHTML = typeWordP.value = "";
-        timerRecorded = startTime = 0; // Init times.
+        if(!success && (startTime != initialStartTime)){
+            // Add penalty to user.
+            penaltyArray.push({user:currentUser,penalty:chickenPenalty});
+            console.log(penaltyArray);
+        }
         currentUser = users.value;
-        console.log(users.value);
+        if(!pointsMap.has(currentUser)){
+            pointsMap.set(currentUser, 0);
+        }
+        timerRecorded = 0; // Init times.
+        startTime = initialStartTime;
         // Start the timer.
         intervalID = setInterval(updateTimer,10);
         // Stop blinking
@@ -157,14 +184,15 @@ this.onload = async ()=>{
         const search = `length=${lngth}&number=${nmber}&lang=${lng}`;
         // return data.join(" ");
         const data = await callApi('word', search);
-        return data.join(" ");
+        return data;
     }
     /**
      * 
      * @returns 
      */
     async function getLanguages() {
-        return callApi('languages');
+        const data = callApi('languages');
+        return data;
     }
     async function callApi(path, search='') {
         let url = `${apiUrl}/${path}`;
@@ -182,8 +210,11 @@ this.onload = async ()=>{
      * @return void
      */
     const updateTimer = ()=>{
-        timerRecorded = (startTime++/100).toFixed(2); // start time with 2 digit format 1.000001 = 1.00
+        timerRecorded = (startTime--/100).toFixed(2); // start time with 2 digit format 1.000001 = 1.00
         timerP.textContent = "time: " +  timerRecorded +" s";
+        if(timerRecorded <=0){
+            stopGame(false);
+        }
     }
     /**
      * ==> EXPLAIN what the function startGame() does
@@ -194,10 +225,10 @@ this.onload = async ()=>{
         if(event==null){
             typedString = typedString.slice(-1);
         }
-        checkWord(typedString);
         if(!lastWasDead){
             randomWordP.innerHTML = wordHighlighter(typedString);
         }
+        checkWord(typedString);
     }
     /**
      * ==> EXPLAIN
@@ -213,7 +244,7 @@ this.onload = async ()=>{
             // and replace spaces by non breaking spaces...
             const charA = text[i].replace(/ /g, '\u00A0').charCodeAt(0);
             const charB = randomWords[i].replace(/ /g, '\u00A0').charCodeAt(0);
-            console.log(text[i], text[i] == ' ', charA, randomWords[i]== ' ', charB);
+            // console.log(text[i], text[i] == ' ', charA, randomWords[i]== ' ', charB);
             if (charA == charB) {
                 displayText += `<span class="correct">${randomWords[i]}</span>`;
             } else {
@@ -229,20 +260,52 @@ this.onload = async ()=>{
     const checkWord = (typed)=>{
         //==> EXPLAIN THIS if BLOCK OF CODE (these 4 lines below)
         if(typed === randomWords){
-            clearInterval(intervalID);
-            typeWordP.blur();
-            timerP.setAttribute("class","blink");
-            randomWordP.classList.add("blink");
-            allRecords.push( {time: timerRecorded, word:typed, user:currentUser });
-            allRecords.sort((a, b) => a.time - b.time);
-            allRecordsOL.innerHTML = "";
-            allRecords.forEach(element => {
-                const li = document.createElement("li");
-                li.textContent = `${element.time}s (${element.word}) ${element.user}`;
-                allRecordsOL.appendChild(li);
-            });
-            timerRecorded = startTime = 0;
+            success = true;
+            stopGame(success);
+            updateRecordsBoard(typed);
+           
+            
+            // timerRecorded = startTime = 0;
         }
+    }
+    const updateRecordsBoard = (typed)=>{
+        allRecords.push( {time: timerRecorded, word:typed, user:currentUser });
+        allRecords.sort((a, b) => a.time - b.time);
+        allRecordsOL.innerHTML = "";
+        allRecords.forEach(element => {
+            const li = document.createElement("li");
+            li.textContent = `${element.time}s (${element.word}) ${element.user}`;
+            allRecordsOL.appendChild(li);
+        });
+    };
+    const updateLeaderBord = ()=>{
+        leaderboard.children = [];
+         console.log(usersArray);
+        for ( let user in usersArray ){
+            console.log(user);
+            points = pointsMap.get(user);
+            const penalty = penaltyArray.reduce((acc, entry) => {
+                acc[entry.user] = (acc[entry.user] || 0) + entry.penalty;
+                return acc;
+            }, {})['user'];
+            console.log(penalty);
+        }
+    }
+    const stopGame = (success) =>{
+        if(success){
+            timerP.classList.add('correct');
+            const currentPoints = pointsMap.get(currentUser) + successPoint;
+            pointsMap.set(currentUser, currentPoints);
+            console.log(pointsMap);
+            
+        }else{
+            timerP.classList.add('wrong');
+        }
+        updateLeaderBord();
+        clearInterval(intervalID);
+        typeWordP.blur();
+        timerP.classList.toggle("blink");
+        randomWordP.classList.toggle("blink");
     }
     // Initialize the game.
     getLanguages().then(initialize);

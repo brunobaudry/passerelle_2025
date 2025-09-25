@@ -19,25 +19,32 @@ this.onload = async ()=>{
     ********************************************/
    const DEFAULTNAME = 'Anonymous';
    let randomWords=''; // The words sentence the user needs to type.
-   let startTime=0; // Time the user takes to type the word (updated every millisecond).
    let initialStartTime = 500;
+   let startTime=initialStartTime; // Time the user takes to type the word (updated every millisecond).
    let timerRecorded=0; // timer record (updated every cents of second).
    let intervalID=0;// an ID for the Timer so that we can stop it.
    let allRecords = []; // Array of timer recorded.
    let lastWasDead = false; // Trick for ô style double strokes
    let currentUser = DEFAULTNAME;
    let success = false;
+   let gameStarted = false;
    
    /*********************************************
     * CONSTANTS
    ********************************************/
   const apiUrl = "https://random-word-api.herokuapp.com";
   const usersArray = [currentUser];
-  const penaltyArray = [];
+  const penaltyMap = new Map();
   const pointsMap = new Map();
-  const correctionPenalty = .1;
-  const chickenPenalty = 1;
-  const successPoint = 1;
+  const levelMap = new Map();
+  const correctionPenalty = 1;
+  const chickenPenalty = 2;
+  const successPoint = 5;
+  const charLevelMap = new Map();
+  charLevelMap.set(0, 160);
+  charLevelMap.set(1, 80);
+  charLevelMap.set(2, 50);
+  charLevelMap.set(3, 20);
 
     /**
      * get the HTML elements
@@ -48,24 +55,24 @@ this.onload = async ()=>{
     const allRecordsOL = document.querySelector('#allRecords'); // list of records
     const leaderboard = document.querySelector('#leaderboard'); // list of records
     const nbWordInput = document.querySelector("#nb");
-    const languagesContainer = document.querySelector("#languages");
     const lengthInput = document.querySelector("#len");//==> EXPLAIN THIS LINE OF CODE
+    const languagesContainer = document.querySelector("#languages");
     const typeWordP = document.querySelector('#typedword');// get the html element for user typed
     const addUser = document.querySelector('#addUser');// get the html element for user typed
     const users = document.querySelector('#users');// get the html element for user typed
     const userinput = document.querySelector('#userinput');// get the html element for user typed
     let langs = [];
    
-    const initialize = (data)=>{ // Only when we got the languages can we start the Game.
+    const initializeFuntion = (data)=>{ // Only when we got the languages can we start the Game.
         langs = data;
         // console.log(langs);
        createLanguageButtons(langs); // Add the radios to the page
        addUser.addEventListener('click', (e)=>{
-        console.log();
+        // console.log();
             const u = userinput.value;
             if(usersArray.indexOf(u) == -1){
                 if(usersArray.indexOf(DEFAULTNAME) == 0){
-                    usersArray = [];
+                    usersArray.length=0;
                 }
                 usersArray.push(userinput.value);
                 const o = document.createElement('option');
@@ -88,6 +95,8 @@ this.onload = async ()=>{
      * @param {Event} event 
      */
     const onKey = (event) => {
+        // event.preventDefault();
+        event.stopPropagation();
         const keyTyped = event.key;
         if (keyTyped === "Dead") {
             // Trick for ô style double strokes.
@@ -98,8 +107,8 @@ this.onload = async ()=>{
                 startGame();
             } else if (timerRecorded > 0 && (event.key === 'Backspace' || event.key === 'Delete')) {
                 // Delete or backspace.
-                console.log('keydown');
-                penaltyArray.push({user:currentUser, penalty: correctionPenalty });
+                const p = penaltyMap.get(currentUser);
+                penaltyMap.set(currentUser, penaltyMap.get(currentUser) + correctionPenalty);
                 onInput(null);
             }
         }
@@ -135,43 +144,61 @@ this.onload = async ()=>{
         languagesContainer.appendChild(input);
         languagesContainer.appendChild(document.createElement('br'));
     }
+    const initUI=()=>{
+        console.log('initUI');
+        timerP.classList = [];
+        typeWordP.focus();
+    }
     /**
      * 
      */
     async function startGame(){
         clearInterval(intervalID); // Reset the interval loop
-        timerP.classList.remove("blink");
-        timerP.classList.remove("correct");
-        timerP.classList.remove("wrong");
-        randomWordP.classList.remove("blink");
+       
+        initUI();
         // Get language
-        const langInput = document.querySelector("[name='lang']:checked");
-        // Fetch the random from the API.
-        const wordsArray = await getRandomWord(lengthInput.value, nbWordInput.value, langInput.value);
-        randomWords = wordsArray.join(" ")
-        randomWordP.textContent = randomWords; // put the random word in the P element
-        // Resetting 
-        typeWordP.innerHTML = typeWordP.value = "";
+        await initWords();
+        // Add a chicken penatly if the user relaunch the game with finishin, or if another user launch and not finished.
         if(!success && (startTime != initialStartTime)){
-            // Add penalty to user.
-            penaltyArray.push({user:currentUser,penalty:chickenPenalty});
-            console.log(penaltyArray);
+            penaltyMap.set(currentUser, penaltyMap.get(currentUser) + chickenPenalty);
         }
-        currentUser = users.value;
-        if(!pointsMap.has(currentUser)){
-            pointsMap.set(currentUser, 0);
-        }
+        currentUser = users.value==''?DEFAULTNAME:users.value;
+        initMaps();
+        // Set the initial time based on the user level.
+        initialStartTime = randomWords.length * charLevelMap.get(levelMap.get(currentUser)) + 20;
         timerRecorded = 0; // Init times.
         startTime = initialStartTime;
         // Start the timer.
         intervalID = setInterval(updateTimer,10);
         // Stop blinking
-        timerP.classList.remove('blink');
-        randomWordP.classList.remove('blink');
-        // Putting the ouse caret in the text box.
-        // Oppposite is call blur.
-        typeWordP.focus();
+        gameStarted = true;
     }
+
+    /**
+     * 
+     */
+    const initMaps=()=> {
+        if (!penaltyMap.has(currentUser)) {
+            penaltyMap.set(currentUser, 0);
+        }
+        if (!pointsMap.has(currentUser)) {
+            pointsMap.set(currentUser, 0);
+        }
+        if (!levelMap.has(currentUser)) {
+            levelMap.set(currentUser, 0);
+        }
+    }
+
+    async function initWords() {
+        const langInput = document.querySelector("[name='lang']:checked");
+        // Fetch the random from the API.
+        const wordsArray = await getRandomWord(lengthInput.value, nbWordInput.value, langInput.value);
+        randomWords = wordsArray.join(" ");
+        randomWordP.textContent = randomWords; // put the random word in the P element
+        // Resetting 
+        typeWordP.innerHTML = typeWordP.value = "";
+    }
+
     /**
      * => Explain
      * @param {Number} lngth 
@@ -182,7 +209,6 @@ this.onload = async ()=>{
     async function getRandomWord(lngth, nmber, lng){
         // String interpolated url with parameters as variables
         const search = `length=${lngth}&number=${nmber}&lang=${lng}`;
-        // return data.join(" ");
         const data = await callApi('word', search);
         return data;
     }
@@ -221,14 +247,19 @@ this.onload = async ()=>{
      * @param {Event} event
      */
     const onInput = (event)=>{
+        console.log(intervalID);
         let typedString = typeWordP.textContent;
-        if(event==null){
-            typedString = typedString.slice(-1);
+        
+        if(gameStarted){
+            if(event==null){
+                typedString = typedString.slice(-1);
+            }
+            if(!lastWasDead){
+                randomWordP.innerHTML = wordHighlighter(typedString);
+            }
+            checkWord(typedString);    
         }
-        if(!lastWasDead){
-            randomWordP.innerHTML = wordHighlighter(typedString);
-        }
-        checkWord(typedString);
+        
     }
     /**
      * ==> EXPLAIN
@@ -238,13 +269,12 @@ this.onload = async ()=>{
     const wordHighlighter = (text)=>{
         let displayText = '';
         let end = randomWords.substring(text.length);
-        // console.log(text, end);
         for (let i = 0; i < text.length; i++) {
             // Loop through all char of typed and compare to the current word
             // and replace spaces by non breaking spaces...
             const charA = text[i].replace(/ /g, '\u00A0').charCodeAt(0);
             const charB = randomWords[i].replace(/ /g, '\u00A0').charCodeAt(0);
-            // console.log(text[i], text[i] == ' ', charA, randomWords[i]== ' ', charB);
+    
             if (charA == charB) {
                 displayText += `<span class="correct">${randomWords[i]}</span>`;
             } else {
@@ -263,50 +293,58 @@ this.onload = async ()=>{
             success = true;
             stopGame(success);
             updateRecordsBoard(typed);
-           
-            
-            // timerRecorded = startTime = 0;
         }
     }
     const updateRecordsBoard = (typed)=>{
         allRecords.push( {time: timerRecorded, word:typed, user:currentUser });
         allRecords.sort((a, b) => a.time - b.time);
+        allRecords = allRecords.slice(0, 6); // reduce the size of the array to 6 max
         allRecordsOL.innerHTML = "";
         allRecords.forEach(element => {
             const li = document.createElement("li");
-            li.textContent = `${element.time}s (${element.word}) ${element.user}`;
+            li.textContent = `${element.time}s ${element.user}`;
+            li.classList.add('tooltip');
+            li.setAttribute('data-tooltip', `Word(s): ${element.word}`);
             allRecordsOL.appendChild(li);
         });
     };
-    const updateLeaderBord = ()=>{
-        leaderboard.children = [];
-         console.log(usersArray);
-        for ( let user in usersArray ){
-            console.log(user);
-            points = pointsMap.get(user);
-            const penalty = penaltyArray.reduce((acc, entry) => {
-                acc[entry.user] = (acc[entry.user] || 0) + entry.penalty;
-                return acc;
-            }, {})['user'];
-            console.log(penalty);
+    const updateLeaderBoard = ()=>{
+        leaderboard.innerHTML = ""; // Reset list
+        for ( let i in usersArray ){
+            const user = usersArray[i];
+            upgradeUser(user);
+            const li = document.createElement("li");
+            li.textContent = `${user} ${pointsMap.get(user)}`;
+            li.classList.add('tooltip');
+            li.setAttribute('data-tooltip', `level ${levelMap.get(user)}`);
+            leaderboard.appendChild(li);
+        }
+    }
+    const upgradeUser = (user)=>{
+        let userLevel = levelMap.get(user);
+        if(pointsMap.get(user) - 10*(userLevel+1) > 0){
+            nbWordInput.value = parseInt(nbWordInput.value) + 1;
+            levelMap.set(user, ++userLevel);
         }
     }
     const stopGame = (success) =>{
+        gameStarted = false;
         if(success){
             timerP.classList.add('correct');
-            const currentPoints = pointsMap.get(currentUser) + successPoint;
-            pointsMap.set(currentUser, currentPoints);
-            console.log(pointsMap);
-            
+             lengthInput.value = parseInt(lengthInput.value) + 1;
+            pointsMap.set(currentUser, pointsMap.get(currentUser) + successPoint);
         }else{
             timerP.classList.add('wrong');
         }
-        updateLeaderBord();
+        updateLeaderBoard();
         clearInterval(intervalID);
+        timerP.classList.add("blink");
         typeWordP.blur();
-        timerP.classList.toggle("blink");
-        randomWordP.classList.toggle("blink");
     }
     // Initialize the game.
-    getLanguages().then(initialize);
+    getLanguages().then(initializeFuntion).catch(
+        (whyRejected)=>{
+            alert(whyRejected);
+        }
+    );
 }

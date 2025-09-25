@@ -184,3 +184,31 @@ option {
     font-family: 'Press Start 2P', cursive;
 }
 
+.tooltip {
+    position: relative;
+}
+
+.tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 110%; /* above the element */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #000;
+    color: #00ff00;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.6em;
+    padding: 6px 8px;
+    border: 2px solid #00ff00;
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 100;
+    text-shadow: 1px 1px 2px #000;
+}
+
+.tooltip:hover::after {
+    opacity: 1;
+}

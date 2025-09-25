@@ -97,9 +97,10 @@ input, button {
     color: #fff;
 }
 
-input:focus, button:focus {
+input:focus, button:focus, select:focus{
     outline: none;
     transform: scale(1.05);
+    box-shadow: #00ff00 0px 0px 16px;
 }
 
 button {
@@ -149,5 +150,37 @@ padding: 6px;
   outline: none;
   border: none;
   box-shadow: none;
+}
+select {
+    padding: 10px;
+    margin: 10px;
+    border: none;
+    border-radius: 5px;
+    font-family: 'Press Start 2P', cursive;
+    background-color: #333;
+    color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, background-color 0.2s;
+    cursor: pointer;
+    appearance: none; /* removes default arrow styling */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    position: relative;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+}
+
+select:focus {
+    outline: none;
+    transform: scale(1.05);
+    background-color: #444;
+}
+
+option {
+    background-color: #000;
+    color: #fff;
+    font-family: 'Press Start 2P', cursive;
 }
 

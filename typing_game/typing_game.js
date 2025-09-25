@@ -23,10 +23,13 @@ this.onload = async ()=>{
     let intervalID=0;// an ID for the Timer so that we can stop it.
     let allRecords = []; // Array of timer recorded.
     let lastWasDead = false; // Trick for ô style double strokes
+    let currentUser = '';
+
     /*********************************************
      * CONSTANTS
      ********************************************/
     const apiUrl = "https://random-word-api.herokuapp.com";
+    const usersArray = [];
     /**
      * get the HTML elements
      */
@@ -38,12 +41,30 @@ this.onload = async ()=>{
     const languagesContainer = document.querySelector("#languages");
     const lengthInput = document.querySelector("#len");//==> EXPLAIN THIS LINE OF CODE
     const typeWordP = document.querySelector('#typedword');// get the html element for user typed
+    const addUser = document.querySelector('#addUser');// get the html element for user typed
+    const users = document.querySelector('#users');// get the html element for user typed
+    const userinput = document.querySelector('#userinput');// get the html element for user typed
     let langs = [];
    
     const initialize = (data)=>{ // Only when we got the languages can we start the Game.
         langs = data;
         // console.log(langs);
        createLanguageButtons(langs); // Add the radios to the page
+       addUser.addEventListener('click', (e)=>{
+        console.log();
+            const u = userinput.value;
+            if(usersArray.indexOf(u) == -1){
+                usersArray.push(userinput.value);
+                const o = document.createElement('option');
+                o.value = u;
+                o.textContent = u;
+                users.appendChild(o);
+                users.selectedIndex = users.children.length-1;
+            }else{
+                alert(`${u} already exists, find another name !`);
+            }
+            
+       })
        typeWordP.addEventListener('input',onInput);
        startBtn.addEventListener('click',startGame); // listen to click on start button
        // Add an event listener to listen to keyboard type.
@@ -113,6 +134,8 @@ this.onload = async ()=>{
         // Resetting 
         typeWordP.innerHTML = typeWordP.value = "";
         timerRecorded = startTime = 0; // Init times.
+        currentUser = users.value;
+        console.log(users.value);
         // Start the timer.
         intervalID = setInterval(updateTimer,10);
         // Stop blinking
@@ -130,14 +153,10 @@ this.onload = async ()=>{
      * @returns {String}
      */
     async function getRandomWord(lngth, nmber, lng){
-        console.log(lng);
         // String interpolated url with parameters as variables
-        const url = `${apiUrl}/word?length=${lngth}&number=${nmber}&lang=${lng}`;
-        // Call http.
-        const response = await fetch(url);
-        // Get the rsponse data.
-        const data = await response.json();
-        // Return the data to the function call.
+        const search = `length=${lngth}&number=${nmber}&lang=${lng}`;
+        // return data.join(" ");
+        const data = await callApi('word', search);
         return data.join(" ");
     }
     /**
@@ -145,7 +164,13 @@ this.onload = async ()=>{
      * @returns 
      */
     async function getLanguages() {
-        const url = `${apiUrl}/languages`;
+        return callApi('languages');
+    }
+    async function callApi(path, search='') {
+        let url = `${apiUrl}/${path}`;
+        if(search !=''){
+            url += `?${search}`;
+        }
         const response = await fetch(url);
         // get the response data
         const data = await response.json();
@@ -208,12 +233,12 @@ this.onload = async ()=>{
             typeWordP.blur();
             timerP.setAttribute("class","blink");
             randomWordP.classList.add("blink");
-            allRecords.push( {time: timerRecorded, word:typed });
+            allRecords.push( {time: timerRecorded, word:typed, user:currentUser });
             allRecords.sort((a, b) => a.time - b.time);
             allRecordsOL.innerHTML = "";
             allRecords.forEach(element => {
                 const li = document.createElement("li");
-                li.textContent = `${element.time}s (${element.word})`;
+                li.textContent = `${element.time}s (${element.word}) ${element.user}`;
                 allRecordsOL.appendChild(li);
             });
             timerRecorded = startTime = 0;

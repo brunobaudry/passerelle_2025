@@ -1,13 +1,15 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
 body {
     background: #000;
     color: #fff;
-    font-family: 'Press Start 2P', cursive;
+    /* font-family: 'Press Start 2P', cursive; */
     /* text-align: center; */
     padding: 50px;
 }
-
+#lifes {
+    position: absolute;
+    top:0;
+    right:8px;
+}
 h1 {
     font-size: 2em;
     color: #00ff00;

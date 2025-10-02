@@ -32,14 +32,15 @@ this.onload = async ()=>{
    /*********************************************
     * CONSTANTS
    ********************************************/
-  const apiUrl = "https://random-word-api.herokuapp.com";
+//   const apiUrl = "https://random-word-api.herokuapp.com"; // https://random-words-api.kushcreates.com/api
+  const apiUrl = "https://random-words-api.kushcreates.com"; // https://random-words-api.kushcreates.com/api
   const usersArray = [];
   const penaltyMap = new Map();
   const pointsMap = new Map();
   const levelMap = new Map();
   const stageMap = new Map();
   const correctionPenalty = 1;
-  const chickenPenalty = 2;
+  const chickenPenalty = 3;
   const successPoint = 5;
   const charLevelMap = new Map();
   charLevelMap.set(0, 160);
@@ -53,37 +54,34 @@ this.onload = async ()=>{
     const randomWordP = document.querySelector('#randomword');// get the html element for randWord
     const timerP = document.querySelector("#timer");// get the timer P element
     const startBtn = document.querySelector('#startgame');// start button
+    const userLevelSpan = document.querySelector('#userlevel');// start button
     const allRecordsOL = document.querySelector('#allRecords'); // list of records
     const leaderboard = document.querySelector('#leaderboard'); // list of records
     const nbWordInput = document.querySelector("#nb");
     const lengthInput = document.querySelector("#len");//==> EXPLAIN THIS LINE OF CODE
     const languagesContainer = document.querySelector("#languages");
+    const categoriesContainer = document.querySelector("#categories");
     const typeWordP = document.querySelector('#typedword');// get the html element for user typed
     const addUser = document.querySelector('#addUser');// get the html element for user typed
     const users = document.querySelector('#users');// get the html element for user typed
     const userinput = document.querySelector('#userinput');// get the html element for user typed
     let langs = [];
    
-    const initializeFuntion = (data)=>{ // Only when we got the languages can we start the Game.
-        langs = data;
-        // console.log(langs);
-       createLanguageButtons(langs); // Add the radios to the page
+    const initializeFuntion = ()=>{ // Only when we got the languages can we start the Game.
+       createOptions(['en', 'es', 'hi', 'gu', 'de', 'fr', 'it', 'zh', 'pt-br'], languagesContainer); // Add the radios to the page
+       createOptions(['all', 'capitals_of_countries', 'countries', 'sports', 'animals', 'birds', 'softwares', 'programming_languages','games','pc_games','mobile_games','console_games','companies'], categoriesContainer); // Add the radios to the page
        currentUser = DEFAULTNAME;
-       console.log(currentUser, usersArray);
        initUser(currentUser);
        addUser.addEventListener('click', e =>{
-        console.log('click', currentUser);
-        initUser(userinput.value);
-
-    });
+            console.log('click', currentUser);
+            const user = userinput.value.trim();
+            if(user !=='') initUser(userinput.value);
+        });
        users.addEventListener('change',(e)=>{
-        stopGame(false);
+        if(gameStarted) stopGame(false);
         currentUser = users.value;
-
-        const stage = stageMap.get(currentUser);
-        nbWordInput.value = stage.contWords;
-        lengthInput.value = stage.wordLength;
-        
+        stageCurrentUser();
+        resetWords();
         console.log(stageMap);
        
     });
@@ -94,13 +92,19 @@ this.onload = async ()=>{
        // Add an event listener to listen to keyboard type.
         document.addEventListener('keydown', onKey);
     }
+    const stageCurrentUser = ()=>{
+        const stage = stageMap.get(currentUser);
+        userLevelSpan.textContent = `level ${levelMap.get(currentUser)}`;
+        nbWordInput.value = stage.contWords;
+        lengthInput.value = stage.wordLength;
+        
+    }
     const onNumstepperChange = (e)=>{
-            const stage = stageMap.get(currentUser);
-            stageMap.set(currentUser, {
-               contWords: parseInt(nbWordInput.value), 
-                wordLength: parseInt(lengthInput.value)}
-            );
-        }
+        stageMap.set(currentUser, {
+            contWords: parseInt(nbWordInput.value), 
+            wordLength: parseInt(lengthInput.value)}
+        );
+    }
     const initUser = (u)=>{
         console.log('initUser', u);
         if (usersArray.indexOf(u) == -1) {
@@ -117,6 +121,9 @@ this.onload = async ()=>{
             users.appendChild(o);
             users.selectedIndex = users.children.length - 1;
             initMaps(u);
+            currentUser = u;
+            stageCurrentUser();
+            resetWords();
         } else {
             alert(`${u} already exists, find another name !`);
         }
@@ -138,20 +145,23 @@ this.onload = async ()=>{
                 startGame();
             } else if (timerRecorded > 0 && (event.key === 'Backspace' || event.key === 'Delete')) {
                 // Delete or backspace.
-                const p = penaltyMap.get(currentUser);
-                penaltyMap.set(currentUser, penaltyMap.get(currentUser) + correctionPenalty);
+                updatePenaltyMap(correctionPenalty);
+                updateHearts();
                 onInput(null);
             }
         }
     };
+    const updatePenaltyMap = (value)=>{
+        penaltyMap.set(currentUser, penaltyMap.get(currentUser) + value);
+    }
     /**
      * Add the radios to the page.
      * @param {array} langs 
      */
-    const createLanguageButtons = (langs)=>{
-        addRadioElements('en', true);
+    const createOptions = (langs, container)=>{
+        // addRadioElements('en', true);
         for(let i = 0; i < langs.length; i++){
-            addRadioElements(langs[i], false);
+            addOptionElements(langs[i], i===0, container);
         }
     }
     /**
@@ -159,28 +169,28 @@ this.onload = async ()=>{
      * @param {String} lang 
      * @param {Boolean} first 
      */
-    const addRadioElements = (lang, first)=>{
-        const label = document.createElement('label');
-        label.setAttribute('for',lang);
-        label.textContent = lang;
+    const addOptionElements = (lang, first, container)=>{
+        // const label = document.createElement('label');
+        // label.setAttribute('for',lang);
+        // label.textContent = lang;
         // Create the input.<input type="radio" value="de" id="de" name="lang" checked/><br/>
-        const input = document.createElement('input');
-        input.type = 'radio'; // input.setAttribute('type','radio'); // The type of input.
-        input.setAttribute('value',lang); // What will be set as value
+        const input = document.createElement('option');
+        //input.type = 'radio'; // input.setAttribute('type','radio'); // The type of input.
+        input.innerHTML = lang; // What will be set as value
         input.setAttribute('id',lang);
         input.setAttribute('name',"lang"); // Same as same radio buttons
         input.checked = first;
         // Add the items to the radio container
-        languagesContainer.appendChild(label);
-        languagesContainer.appendChild(input);
-        languagesContainer.appendChild(document.createElement('br'));
+        //languagesContainer.appendChild(label);
+        container.appendChild(input);
+        container.appendChild(document.createElement('br'));
     }
     const initUI=()=>{
-        console.log('initUI');
         const stage = stageMap.get(currentUser);
         nbWordInput.value = stage.contWords;
         lengthInput.value = stage.wordLength;
         timerP.classList = [];
+        userLevelSpan.classList = [];
         typeWordP.focus();
     }
     /**
@@ -192,8 +202,10 @@ this.onload = async ()=>{
         // Get language
         await initWords();
         // Add a chicken penatly if the user relaunch the game with finishin, or if another user launch and not finished.
+        console.log(!success , startTime , initialStartTime, (startTime != initialStartTime), !success && (startTime != initialStartTime));
         if(!success && (startTime != initialStartTime)){
-            penaltyMap.set(currentUser, penaltyMap.get(currentUser) + chickenPenalty);
+            updatePenaltyMap(chickenPenalty);
+            updateHearts();
         }
         
         initMaps(currentUser);
@@ -205,6 +217,8 @@ this.onload = async ()=>{
         intervalID = setInterval(updateTimer,10);
         // Stop blinking
         gameStarted = true;
+        //const storedOk = await storeData('user', currentUser);
+        // console.log(storedOk);
     }
 
     /**
@@ -224,44 +238,77 @@ this.onload = async ()=>{
             stageMap.set(user, {contWords:1, wordLength:2});
         }
     }
-
+    const resetWords = ()=>{
+        randomWordP.innerHTML = '';
+        typeWordP.innerHTML = typeWordP.value = '';
+    }
     async function initWords() {
-        const langInput = document.querySelector("[name='lang']:checked");
         // Fetch the random from the API.
-        const wordsArray = await getRandomWord(lengthInput.value, nbWordInput.value, langInput.value);
-        randomWords = wordsArray.join(" ");
-        randomWordP.textContent = randomWords; // put the random word in the P element
-        // Resetting 
-        typeWordP.innerHTML = typeWordP.value = "";
+        const wordsArray = await getRandomWord();
+        randomWords = wordsArray.map((e)=>e.word).join(" ");
+        resetWords();
+        randomWordP.innerHTML = randomWords; // put the random word in the P element
     }
 
     /**
      * => Explain
-     * @param {Number} lngth 
-     * @param {Number} nmber 
-     * @param {String} lng 
+
      * @returns {String}
      */
-    async function getRandomWord(lngth, nmber, lng){
+    async function getRandomWord(){
+        const langInput = document.querySelector("[name='lang']:checked");
+        let search = '';
+        if(lengthInput.value){
+            search += `&length=${lengthInput.value}`;
+        }
+        if(nbWordInput.value){
+            search += `&words=${nbWordInput.value}`;
+        }
+        if(langInput.value){
+            search += `&language=${langInput.value}`;
+        }
+        if(categoriesContainer.value){
+            search += `&category=${categoriesContainer.value}`;
+        }
         // String interpolated url with parameters as variables
-        const search = `length=${lngth}&number=${nmber}&lang=${lng}`;
-        const data = await callApi('word', search);
+        // const search = `length=${lngth}&number=${nmber}&lang=${lng}`;
+        // const search = `length=${lngth}&words=${nmber}&lang=${lng}`;
+        const data = await callApi('api', search);
+        // console.log(data);
         return data;
     }
     /**
      * 
      * @returns 
      */
-    async function getLanguages() {
-        const data = callApi('languages');
-        return data;
-    }
+    // async function getLanguages() {
+    //     storeData('attempts', new Date().toISOString());
+    //     //const data = callApi('languages');
+    //     // const data = callApi('languages');
+    //     const data = ['en', 'es', 'hi', 'gu', 'de', 'fr', 'it', 'zh', 'pt-br'];
+    //     return data;
+    // }
     async function callApi(path, search='') {
         let url = `${apiUrl}/${path}`;
         if(search !=''){
             url += `?${search}`;
         }
         const response = await fetch(url);
+        // get the response data
+        const data = await response.json();
+        // return the data to the function call
+        return data;
+    }
+    async function storeData(name, values){
+        let url = `/${name}`;
+        const options = {
+            method: "POST",
+            body: JSON.stringify(values),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        }
+        const response = await fetch(url, options);
         // get the response data
         const data = await response.json();
         // return the data to the function call
@@ -283,9 +330,7 @@ this.onload = async ()=>{
      * @param {Event} event
      */
     const onInput = (event)=>{
-        console.log(intervalID);
         let typedString = typeWordP.textContent;
-        
         if(gameStarted){
             if(event==null){
                 typedString = typedString.slice(-1);
@@ -305,7 +350,7 @@ this.onload = async ()=>{
     const wordHighlighter = (text)=>{
         let displayText = '';
         let end = randomWords.substring(text.length);
-        for (let i = 0; i < text.length; i++) {
+        for (let i = 0; i < Math.min(randomWords.length , text.length); i++) {
             // Loop through all char of typed and compare to the current word
             // and replace spaces by non breaking spaces...
             const charA = text[i].replace(/ /g, '\u00A0').charCodeAt(0);
@@ -370,9 +415,11 @@ this.onload = async ()=>{
     const upgradeUser = (user)=>{
         let userLevel = levelMap.get(user);
         if(pointsMap.get(user) - 10*(userLevel+1) > 0){
-            
+            const stage = stageMap.get(currentUser);
             stageMap.set(currentUser, {contWords:++stage.contWords, wordLength: stage.wordLength});
             levelMap.set(user, ++userLevel);
+            userLevelSpan.classList.add("blink");
+            stageCurrentUser();
         }
     }
     /**
@@ -387,17 +434,42 @@ this.onload = async ()=>{
             stageMap.set(currentUser, {contWords:stage.contWords, wordLength:++stage.wordLength});
             pointsMap.set(currentUser, pointsMap.get(currentUser) + successPoint);
         }else{
+            updatePenaltyMap(chickenPenalty);
             timerP.classList.add('wrong');
         }
         updateLeaderBoard();
         clearInterval(intervalID);
         timerP.classList.add("blink");
         typeWordP.blur();
+        updateHearts();
     }
-    // Initialize the game.
-    getLanguages().then(initializeFuntion).catch(
-        (whyRejected)=>{
-            alert(whyRejected);
+    const updateHearts = ()=>{
+        const penalty = penaltyMap.get(currentUser)
+        const totalHearts = 5;
+        const maxPenalty = 50 * ( totalHearts - levelMap.get(currentUser));
+        console.log(maxPenalty);
+        const heartPenalty = maxPenalty / totalHearts; // 10 per heart
+
+        for (let i = 0; i < totalHearts; i++) {
+            const heart = document.getElementById(`heart${i}`);
+            const start = i * heartPenalty;
+            const end = (i + 1) * heartPenalty;
+
+            if (penalty <= start) {
+                // Heart is still full
+                heart.style.opacity = 1;
+            } else if (penalty >= end) {
+                // Heart completely faded
+                heart.style.opacity = 0;
+            } else {
+            // Heart partially faded within this penalty range
+            const progress = (penalty - start) / heartPenalty;
+            heart.style.opacity = 1 - progress;
+            console.log(progress);
+            }
         }
-    );
+    }
+
+    // Initialize the game.
+    initializeFuntion();
 }

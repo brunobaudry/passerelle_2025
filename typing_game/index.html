@@ -1,20 +1,35 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <link rel="stylesheet" href="style.css">
-        <script src="typing_game.js"></script>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');body,#timer,input, button,select,option, .tooltip::after {font-family: 'Press Start 2P', cursive;}
+        </style>
+        <link rel="stylesheet" href="static/css/style.min.css">
+        <script src="static/js/typing_game.min.js"></script>
+        
     </head>
     <body>
+        <div id="lifes">
+            <img id="heart0" src="static/img/heart.svg" alt="heart icon">
+            <img id="heart1" src="static/img/heart.svg" alt="heart icon">
+            <img id="heart2" src="static/img/heart.svg" alt="heart icon">
+            <img id="heart3" src="static/img/heart.svg" alt="heart icon">
+            <img id="heart4" src="static/img/heart.svg" alt="heart icon">
+        </div>
     <h1>Typing Game</h1>
         <div class="container">
             <div class="settings item">
                 <h2>Settings</h2>
+               
                 <input id="userinput" placeholder="Username"/><button id="addUser">add</button><br>
                 <label for="nb">Number of words</label>
                 <input type="number" id="nb" width="40" max="10" min="1" value="1"/><br/>
                 <label for="len">Length of words</label>
-                <input type="number" id="len" width="40" max="10" min="2" value="2"/><br/>  
-                <div id="languages"></div>
+                <input type="number" id="len" width="40" max="10" min="2" value="2"/><br/>
+                <label for="languages">Languages</label>
+                <select id="languages" title="languages"></select><br/>
+                <label for="categories">Categories</label>
+                <select id="categories" title="categories"></select>
             </div>
             <div class="item">
                 <label for="users">User:</label>                
@@ -22,7 +37,7 @@
                     <!-- <option id="defaut" value='Anonymous' selected="selected" disabled>Anonymous</option> -->
                 </select>
                 <p id="timer" class="">time:</p>
-                <button id="startgame">Start</button><br/>
+                <button id="startgame">Start</button><span id="userlevel"></span><br/>
                 <p contenteditable="true" type="textarea" id="typedword">&nbsp;</p>
                 <p id="randomword">&nbsp;</p>
             </div>

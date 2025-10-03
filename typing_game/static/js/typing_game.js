@@ -22,6 +22,7 @@ this.onload = async ()=>{
    let initialStartTime = 500;
    let startTime=initialStartTime; // Time the user takes to type the word (updated every millisecond).
    let timerRecorded=0; // timer record (updated every cents of second).
+   let timeSpent=0; // timer record (updated every cents of second).
    let intervalID=0;// an ID for the Timer so that we can stop it.
    let allRecords = []; // Array of timer recorded.
    let lastWasDead = false; // Trick for ô style double strokes
@@ -75,7 +76,12 @@ this.onload = async ()=>{
        addUser.addEventListener('click', e =>{
             console.log('click', currentUser);
             const user = userinput.value.trim();
-            if(user !=='') initUser(userinput.value);
+            if(user !=='') { 
+                if(gameStarted){
+                    stopGame(false);
+                }
+                initUser(userinput.value);
+            }
         });
        users.addEventListener('change',(e)=>{
         if(gameStarted) stopGame(false);
@@ -108,16 +114,16 @@ this.onload = async ()=>{
     const initUser = (u)=>{
         console.log('initUser', u);
         if (usersArray.indexOf(u) == -1) {
-            if (usersArray.indexOf(DEFAULTNAME) == 0) {
-                usersArray.length = 0;
-            }
+            // if (usersArray.indexOf(DEFAULTNAME) == 0) {
+            //     usersArray.length = 0;
+            // }
             usersArray.push(u);
             const o = document.createElement('option');
             o.value = u;
             o.textContent = u;
-            if(u == DEFAULTNAME){
-                o.disabled= true;
-            }
+            // if(u == DEFAULTNAME){
+            //     o.disabled= true;
+            // }
             users.appendChild(o);
             users.selectedIndex = users.children.length - 1;
             initMaps(u);
@@ -202,13 +208,12 @@ this.onload = async ()=>{
         // Get language
         await initWords();
         // Add a chicken penatly if the user relaunch the game with finishin, or if another user launch and not finished.
-        console.log(!success , startTime , initialStartTime, (startTime != initialStartTime), !success && (startTime != initialStartTime));
         if(!success && (startTime != initialStartTime)){
             updatePenaltyMap(chickenPenalty);
             updateHearts();
         }
         
-        initMaps(currentUser);
+        //initMaps(currentUser);
         // Set the initial time based on the user level.
         initialStartTime = randomWords.length * charLevelMap.get(levelMap.get(currentUser)) + 20;
         timerRecorded = 0; // Init times.
@@ -232,10 +237,10 @@ this.onload = async ()=>{
             pointsMap.set(user, 0);
         }
         if (!levelMap.has(user)) {
-            levelMap.set(user, 0);
+            levelMap.set(user, 1);
         }
         if (!stageMap.has(user)) {
-            stageMap.set(user, {contWords:1, wordLength:2});
+            stageMap.set(user, {contWords:1, wordLength:2, gameover:false});
         }
     }
     const resetWords = ()=>{
@@ -320,9 +325,12 @@ this.onload = async ()=>{
      */
     const updateTimer = ()=>{
         timerRecorded = (startTime--/100).toFixed(2); // start time with 2 digit format 1.000001 = 1.00
-        timerP.textContent = "time: " +  timerRecorded +" s";
+        timeSpent = initialStartTime - startTime;
+        timerP.textContent = `${timerRecorded}s`;
         if(timerRecorded <=0){
             stopGame(false);
+        }else if(startTime < initialStartTime*.25){
+            timerP.classList = ['warn'];
         }
     }
     /**
@@ -338,7 +346,7 @@ this.onload = async ()=>{
             if(!lastWasDead){
                 randomWordP.innerHTML = wordHighlighter(typedString);
             }
-            checkWord(typedString);    
+            checkWord();    
         }
         
     }
@@ -368,12 +376,11 @@ this.onload = async ()=>{
      * ==> EXPLAIN
      * @param {String} typed
      */
-    const checkWord = (typed)=>{
+    const checkWord = ()=>{
         //==> EXPLAIN THIS if BLOCK OF CODE (these 4 lines below)
-        if(typed === randomWords){
+        if(typeWordP.textContent === randomWords){
             success = true;
             stopGame(success);
-            updateRecordsBoard(typed);
         }
     }
     /**
@@ -381,13 +388,13 @@ this.onload = async ()=>{
      * @param {*} typed 
      */
     const updateRecordsBoard = (typed)=>{
-        allRecords.push( {time: timerRecorded, word:typed, user:currentUser });
+        allRecords.push( {time: (timeSpent /typed.length).toFixed(0), word:typed, user:currentUser });
         allRecords.sort((a, b) => a.time - b.time);
         allRecords = allRecords.slice(0, 6); // reduce the size of the array to 6 max
         allRecordsOL.innerHTML = "";
         allRecords.forEach(element => {
-            const li = document.createElement("li");
-            li.textContent = `${element.time}s ${element.user}`;
+            const li = document.createElement("tr");
+            li.innerHTML = `<td>${element.user}</td><td>${element.time}</td>`;
             li.classList.add('tooltip');
             li.setAttribute('data-tooltip', `Word(s): ${element.word}`);
             allRecordsOL.appendChild(li);
@@ -401,10 +408,10 @@ this.onload = async ()=>{
         for ( let i in usersArray ){
             const user = usersArray[i];
             upgradeUser(user);
-            const li = document.createElement("li");
-            li.textContent = `${user} ${pointsMap.get(user)}`;
+            const li = document.createElement("tr");
+            li.innerHTML = `<td>${user}</td><td>${levelMap.get(user)}</td><td>${pointsMap.get(user)*100}</td>`;
             li.classList.add('tooltip');
-            li.setAttribute('data-tooltip', `level ${levelMap.get(user)}`);
+            li.setAttribute('data-tooltip', `Penalties ${penaltyMap.get(user)}`);
             leaderboard.appendChild(li);
         }
     }
@@ -429,38 +436,39 @@ this.onload = async ()=>{
     const stopGame = (success) =>{
         gameStarted = false;
         if(success){
-            timerP.classList.add('correct');
+            timerP.classList = ['correct'];
             const stage = stageMap.get(currentUser);
             stageMap.set(currentUser, {contWords:stage.contWords, wordLength:++stage.wordLength});
             pointsMap.set(currentUser, pointsMap.get(currentUser) + successPoint);
+            updateRecordsBoard(typeWordP.textContent);
         }else{
             updatePenaltyMap(chickenPenalty);
-            timerP.classList.add('wrong');
+            timerP.classList = ['wrong'];
         }
-        updateLeaderBoard();
         clearInterval(intervalID);
         timerP.classList.add("blink");
         typeWordP.blur();
+        updateLeaderBoard();
         updateHearts();
     }
     const updateHearts = ()=>{
         const penalty = penaltyMap.get(currentUser)
         const totalHearts = 5;
-        const maxPenalty = 50 * ( totalHearts - levelMap.get(currentUser));
-        console.log(maxPenalty);
+        const maxPenalty = 50 * ( totalHearts - levelMap.get(currentUser))/2;
         const heartPenalty = maxPenalty / totalHearts; // 10 per heart
-
         for (let i = 0; i < totalHearts; i++) {
             const heart = document.getElementById(`heart${i}`);
             const start = i * heartPenalty;
             const end = (i + 1) * heartPenalty;
-
             if (penalty <= start) {
                 // Heart is still full
                 heart.style.opacity = 1;
             } else if (penalty >= end) {
                 // Heart completely faded
                 heart.style.opacity = 0;
+                if(i== totalHearts-1){
+                    gameover = true;
+                }
             } else {
             // Heart partially faded within this penalty range
             const progress = (penalty - start) / heartPenalty;
@@ -472,4 +480,34 @@ this.onload = async ()=>{
 
     // Initialize the game.
     initializeFuntion();
+
+const openModalBtn = document.querySelectorAll('[data-modal-open]');
+  const closeModalBtn = document.querySelectorAll('[data-modal-close]');
+  let modal = document.querySelector('#modalsettings');
+console.log(openModalBtn);
+  openModalBtn.forEach(bt=>bt.addEventListener('click', (e) => {
+    
+    if(e.target.closest('#settings')) {
+        modal = document.querySelector('#modalsettings');
+    console.log(e.target);    
+    }else if(e.target.closest('#boards')){
+        modal = document.querySelector('#modalboards');
+    }
+    console.log(modal.id);
+    modal.classList.add('active');
+  })
+);
+
+  closeModalBtn.forEach(e=>e.addEventListener('click', () => {
+    modal.classList.remove('active');
+    console.log(modal);
+  }));
+
+  window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('active');
+      console.log(modal);
+    }
+  });
+
 }
